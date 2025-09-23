@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crisis Coach</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .response {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      background: #fff;
+    }
+    .crisis {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Crisis Coach</h1>
+  <p>Type how you're feeling below:</p>
+  <textarea id="userInput" placeholder="Write anything here..."></textarea>
+  <button onclick="checkInput()">Check for Support</button>
+  
+  <div class="response" id="responseBox" style="display:none;"></div>
+
+  <script>
+    const crisisKeywords = [
+      "i want to die",
+      "i can't go on",
+      "end it all",
+      "kill myself",
+      "suicide",
+      "hopeless",
+      "i'm done"
+    ];
+
+    const supportiveMessage = `
+      <p class="crisis">You're not alone. 💛</p>
+      <p>It sounds like you're going through something really hard.</p>
+      <p>Here are places you can talk to someone **right now**:</p>
+      <ul>
+        <li><strong>Call 988</strong> - 24/7 free crisis hotline (USA)</li>
+        <li><strong>Text 741741</strong> - Text with a trained counselor</li>
+        <li><a href="https://suicidepreventionlifeline.org/" target="_blank">Visit Lifeline Chat</a></li>
+      </ul>
+      <p>You matter. There is help. ❤️</p>
+    `;
+
+    function checkInput() {
+      const input = document.getElementById("userInput").value.toLowerCase();
+      const responseBox = document.getElementById("responseBox");
+
+      let crisisDetected = crisisKeywords.some(keyword => input.includes(keyword));
+
+      if (crisisDetected) {
+        responseBox.innerHTML = supportiveMessage;
+        responseBox.style.display = "block";
+      } else {
+        responseBox.innerHTML = "<p>Thank you for sharing. If you ever feel overwhelmed, help is always available.</p>";
+        responseBox.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
