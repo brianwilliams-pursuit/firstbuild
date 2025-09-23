@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bro Support - Anonymous Crisis Support</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90a4 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        #feelings-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        #feelings-input:focus {
+            outline: none;
+            border-color: #4a90a4;
+            box-shadow: 0 0 0 3px rgba(74, 144, 164, 0.1);
+        }
+
+        #submit-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        #submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        #response-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .encouragement {
+            background: linear-gradient(135deg, #6f42c1, #e83e8c);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
+        }
+
+        .response-message {
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .crisis-resources {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .support-resources {
+            background: linear-gradient(135deg, #fd7e14, #e55a00);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .general-resources {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .resource-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .resource-card.urgent {
+            border-left: 4px solid #ffeb3b;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .help-button {
+            display: inline-block;
+            background: white;
+            color: #dc3545;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .help-button:hover {
+            transform: scale(1.05);
+        }
+
+        .bro-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-style: italic;
+            border-left: 4px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .crisis-notice {
+            background: linear-gradient(135deg, #dc3545, #bd2130);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .privacy-note {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .input-section, #response-section {
+                padding: 20px;
+            }
+            
+            #feelings-input {
+                padding: 15px;
+                min-height: 100px;
+            }
+            
+            .encouragement {
+                font-size: 1.1em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Bro Support</h1>
+            <p>Anonymous, judgment-free space. We got your back.</p>
+        </header>
+
+        <div class="disclaimer">
+            <p><strong>Important:</strong> This tool provides peer support and resource information only. It is not a substitute for professional mental health treatment, medical advice, or crisis intervention services. If you are experiencing a mental health emergency, please contact professional services immediately.</p>
+        </div>
+
+        <div class="input-section">
+            <textarea 
+                id="feelings-input" 
+                placeholder="What's going on, bro? Let it out - no judgment here."
+                rows="4"
+            ></textarea>
+            <button id="submit-btn">I need some support</button>
+        </div>
+        
+        <div id="response-section" style="display:none;">
+            <div id="encouragement-message"></div>
+            <div id="response-message"></div>
+            <div id="resources"></div>
+        </div>
+        
+        <div class="crisis-notice">
+            <p><strong>In immediate danger?</strong></p>
+            <p>Call 911 or text 988 (Crisis Lifeline) - We want you safe, bro</p>
+        </div>
+
+        <div class="privacy-note">
+            <p>Completely anonymous - no data stored, no tracking</p>
+        </div>
+    </div>
+    
+    <script>
+        // Crisis keywords to detect high-risk situations
+        const crisisKeywords = [
+            'suicide', 'kill myself', 'end it all', 'better off dead',
+            'can\'t go on', 'want to die', 'no point', 'give up',
+            'hurt myself', 'end my life', 'not worth living', 'no hope',
+            'want out', 'can\'t take it', 'done with life'
+        ];
+
+        const stressKeywords = [
+            'stress', 'overwhelmed', 'pressure', 'breaking point',
+            'can\'t handle', 'too much', 'falling apart', 'losing it',
+            'burned out', 'exhausted', 'drowning'
+        ];
+
+        // Encouraging messages in supportive, peer-style language
+        const encouragementMessages = {
+            crisis: [
+                "Hey bro, you reached out and that takes real strength",
+                "You got this fam - you're not alone in this fight", 
+                "We see you, we got you, and you matter more than you know",
+                "Real talk: reaching out shows you're a fighter, not giving up",
+                "Bro, you're stronger than this moment - we believe in you"
+            ],
+            stress: [
+                "Yo, sounds like you're carrying a heavy load right now",
+                "We got your back through this tough time, fam",
+                "You're dealing with real stuff - that's not weakness, that's life",
+                "Been there, felt that. You're gonna get through this, bro",
+                "Stress is real but so are you - we see your strength"
+            ],
+            general: [
+                "Thanks for trusting us with what's going on, bro",
+                "You got this, fam. Taking care of your mental health is strength",
+                "Real men talk about their feelings - respect for opening up",
+                "We got you, bro. Whatever you're facing, you don't face it alone",
+                "Appreciate you being real with us - that takes courage"
+            ]
+        };
+
+        // Supportive responses with professional resources
+        const responses = {
+            crisis: {
+                message: "Listen bro, what you're going through is serious, but you don't have to handle this alone. There are people who specialize in exactly what you're feeling right now.",
+                resources: `
+                    <div class="crisis-resources">
+                        <h3>GET IMMEDIATE HELP:</h3>
+                        <div class="resource-card urgent">
+                            <p><strong>Text 988</strong> - Crisis Lifeline (24/7)</p>
+                            <p>Real people who get it, available right now</p>
+                        </div>
+                        <div class="resource-card urgent">
+                            <p><strong>Text "HELLO" to 741741</strong> - Crisis Text Line</p>
+                            <p>Text-based support if calling feels too hard</p>
+                        </div>
+                        <div class="resource-card urgent">
+                            <p><strong>Call 911</strong> if you're in immediate physical danger</p>
+                        </div>
+                        <a href="https://988lifeline.org/" target="_blank" class="help-button">Connect Now</a>
+                        <p class="bro-note">Bro, these aren't just hotlines - they're real people who've helped thousands get through exactly what you're feeling.</p>
+                    </div>
+                `
+            },
+            stress: {
+                message: "Sounds like the pressure is getting real heavy, bro. That overwhelmed feeling is your mind telling you it's time to get some support.",
+                resources: `
+                    <div class="support-resources">
+                        <h3>STRESS SUPPORT TOOLKIT:</h3>
+                        <div class="resource-card">
+                            <p><strong>Quick Relief:</strong> Try 4-7-8 breathing (breathe in 4, hold 7, out 8)</p>
+                        </div>
+                        <div class="resource-card">
+                            <p><strong>Talk it out:</strong> Call someone you trust - even 5 minutes helps</p>
+                        </div>
+                        <div class="resource-card">
+                            <p><strong>Move your body:</strong> 10 push-ups or a walk around the block</p>
+                        </div>
+                        <div class="resource-card">
+                            <p><strong>If stress is constant:</strong> Text 988 for professional support</p>
+                        </div>
+                        <p class="bro-note">Remember: Asking for help isn't giving up, it's leveling up.</p>
+                    </div>
+                `
+            },
+            general: {
+                message: "Appreciate you sharing what's on your mind, bro. Sometimes just getting it out there is the first step to feeling better.",
+                resources: `
+                    <div class="general-resources">
+                        <h3>SUPPORT OPTIONS:</h3>
+                        <div class="resource-card">
+                            <p><strong>Crisis Text Line:</strong> Text HOME to 741741</p>
+                            <p>For when you need to talk but don't want to call</p>
+                        </div>
+                        <div class="resource-card">
+                            <p><strong>Men's Health Resources:</strong> Focus on one small win today</p>
+                        </div>
+                        <div class="resource-card">
+                            <p><strong>Remember:</strong> Taking care of your mental health is as important as physical health</p>
+                        </div>
+                        <div class="resource-card">
+                            <p><strong>Bro tip:</strong> Even asking for help is a sign you're handling business</p>
+                        </div>
+                        <p class="bro-note">You reached out today - that's already progress, fam.</p>
+                    </div>
+                `
+            }
+        };
+
+        // Main function to analyze input and show response
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            const input = document.getElementById('feelings-input').value.toLowerCase().trim();
+            
+            if (!input) {
+                alert('Let us know what\'s going on, bro. We\'re here to listen.');
+                return;
+            }
+
+            const responseSection = document.getElementById('response-section');
+            const encouragementDiv = document.getElementById('encouragement-message');
+            const messageDiv = document.getElementById('response-message');
+            const resourcesDiv = document.getElementById('resources');
+            
+            // Determine response type based on keywords
+            let responseType = 'general';
+            
+            // Check for crisis keywords first (highest priority)
+            if (crisisKeywords.some(keyword => input.includes(keyword))) {
+                responseType = 'crisis';
+            } else if (stressKeywords.some(keyword => input.includes(keyword))) {
+                responseType = 'stress';
+            }
+            
+            // Get random encouraging message
+            const encouragements = encouragementMessages[responseType];
+            const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
+            
+            // Show encouraging message first
+            encouragementDiv.innerHTML = `<div class="encouragement">${randomEncouragement}</div>`;
+            
+            // Show appropriate response
+            const response = responses[responseType];
+            messageDiv.innerHTML = `<p class="response-message">${response.message}</p>`;
+            resourcesDiv.innerHTML = response.resources;
+            
+            // Show response section with animation
+            responseSection.style.display = 'block';
+            setTimeout(() => {
+                responseSection.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        });
+
+        // Add some interactive encouragement
+        document.getElementById('feelings-input').addEventListener('focus', function() {
+            this.placeholder = "We're listening, bro. What's really going on?";
+        });
+
+        document.getElementById('feelings-input').addEventListener('blur', function() {
+            if (!this.value) {
+                this.placeholder = "What's going on, bro? Let it out - no judgment here.";
+            }
+        });
+    </script>
+</body>
+</html>
