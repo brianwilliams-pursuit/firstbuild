@@ -1,92 +1,350 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Crisis Coach</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f6fa;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    textarea {
-      width: 100%;
-      height: 150px;
-      padding: 10px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      font-size: 16px;
-      background: #2ecc71;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .response {
-      margin-top: 20px;
-      padding: 15px;
-      border: 1px solid #ddd;
-      background: #fff;
-    }
-    .crisis {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <h1>Crisis Coach</h1>
-  <p>Type how you're feeling below:</p>
-  <textarea id="userInput" placeholder="Write anything here..."></textarea>
-  <button onclick="checkInput()">Check for Support</button>
-  
-  <div class="response" id="responseBox" style="display:none;"></div>
 
-  <script>
-    const crisisKeywords = [
-      "i want to die",
-      "i can't go on",
-      "end it all",
-      "kill myself",
-      "suicide",
-      "hopeless",
-      "i'm done"
-    ];
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Phone, AlertTriangle, Settings, User, Bot, Heart, Shield, Activity, Clock } from 'lucide-react';
 
-    const supportiveMessage = `
-      <p class="crisis">You're not alone. 💛</p>
-      <p>It sounds like you're going through something really hard.</p>
-      <p>Here are places you can talk to someone **right now**:</p>
-      <ul>
-        <li><strong>Call 988</strong> - 24/7 free crisis hotline (USA)</li>
-        <li><strong>Text 741741</strong> - Text with a trained counselor</li>
-        <li><a href="https://suicidepreventionlifeline.org/" target="_blank">Visit Lifeline Chat</a></li>
-      </ul>
-      <p>You matter. There is help. ❤️</p>
-    `;
+const CrisisCoachMessaging = () => {
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      type: 'bot',
+      content: "Yo! What's good, bro? I'm Coach - think of me as your wingman for life's tough stuff. No judgment here, just real talk when you need it. How you doing today, man?",
+      timestamp: new Date(Date.now() - 300000),
+      urgent: false
+    }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [riskLevel, setRiskLevel] = useState('normal');
+  const [conversationContext, setConversationContext] = useState({
+    lastCheckIn: null,
+    concerningPatterns: [],
+    positivePatterns: [],
+    needsFollowUp: false
+  });
+  const messagesEndRef = useRef(null);
 
-    function checkInput() {
-      const input = document.getElementById("userInput").value.toLowerCase();
-      const responseBox = document.getElementById("responseBox");
+  // Keywords and patterns for distress detection
+  const distressKeywords = {
+    high: ['suicide', 'kill myself', 'end it all', 'no point', 'worthless', 'hopeless', 'can\'t go on'],
+    moderate: ['depressed', 'anxious', 'overwhelmed', 'struggling', 'difficult', 'hard time', 'stressed'],
+    positive: ['better', 'good', 'improving', 'happy', 'grateful', 'hopeful', 'progress']
+  };
 
-      let crisisDetected = crisisKeywords.some(keyword => input.includes(keyword));
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-      if (crisisDetected) {
-        responseBox.innerHTML = supportiveMessage;
-        responseBox.style.display = "block";
-      } else {
-        responseBox.innerHTML = "<p>Thank you for sharing. If you ever feel overwhelmed, help is always available.</p>";
-        responseBox.style.display = "block";
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Analyze message for distress indicators
+  const analyzeMessage = (content) => {
+    const lowerContent = content.toLowerCase();
+    
+    if (distressKeywords.high.some(keyword => lowerContent.includes(keyword))) {
+      return 'high';
+    } else if (distressKeywords.moderate.some(keyword => lowerContent.includes(keyword))) {
+      return 'moderate';
+    } else if (distressKeywords.positive.some(keyword => lowerContent.includes(keyword))) {
+      return 'positive';
+    }
+    return 'normal';
+  };
+
+  // Generate appropriate bot response based on risk level
+  const generateBotResponse = (userMessage, riskLevel) => {
+    const responses = {
+      high: [
+        "Yo man, I'm not gonna lie - what you just said has me worried about you, for real. You're my guy and I need to make sure you're safe. Can we get you talking to someone who knows their stuff right now?",
+        "Bro, that's some heavy stuff you're carrying. You don't gotta face this alone though - that's what we're here for. Let me hook you up with someone who can help you work through this, yeah?"
+      ],
+      moderate: [
+        "Damn man, sounds like you're going through it right now. That takes some serious guts to open up like that. What's been the hardest part about all this?",
+        "I hear you, bro. Life's been throwing some punches lately, huh? You're stronger than you think, but even strong dudes need backup sometimes. Who's in your corner right now?",
+        "Real talk - that sounds rough as hell. But you trusted me with this, and that means something. What usually helps when you're feeling like this? Let's figure this out together."
+      ],
+      positive: [
+        "Yooo, that's what I'm talking about! Love hearing you sound good, man. What's got you feeling solid today?",
+        "Now that's the energy I like to see! Good to hear you're having a better day, bro. What's different about today?"
+      ],
+      normal: [
+        "I appreciate you keeping it real with me, man. How's your sleep been? You know that stuff matters more than people think.",
+        "Thanks for checking in, bro. What's been on your mind lately? Sometimes just talking it out helps.",
+        "How you taking care of yourself today, man? You doing anything good for you?"
+      ]
+    };
+
+    const responseArray = responses[riskLevel] || responses.normal;
+    return responseArray[Math.floor(Math.random() * responseArray.length)];
+  };
+
+  // Add urgent resources message
+  const addUrgentResourcesMessage = () => {
+    const urgentMessage = {
+      id: messages.length + 1,
+      type: 'bot',
+      content: "🚨 Listen up bro - I got your back and so do these guys:\n\n• Call 988 - These people know what they're doing\n• Text HOME to 741741 - Quick and easy\n• Call 911 if things are getting real\n\nYou matter, man. Seriously. Want me to help you connect with one of these? No shame in getting backup.",
+      timestamp: new Date(),
+      urgent: true
+    };
+    
+    setMessages(prev => [...prev, urgentMessage]);
+  };
+
+  // Handle sending messages
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    const userMessage = {
+      id: messages.length + 1,
+      type: 'user',
+      content: newMessage,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setNewMessage('');
+    setIsTyping(true);
+
+    // Analyze the message for risk
+    const detectedRisk = analyzeMessage(newMessage);
+    setRiskLevel(detectedRisk);
+
+    // If high risk, immediately add urgent resources
+    if (detectedRisk === 'high') {
+      setTimeout(() => {
+        addUrgentResourcesMessage();
+        setIsTyping(false);
+      }, 1000);
+      return;
+    }
+
+    // Generate and add bot response
+    setTimeout(() => {
+      const botResponse = {
+        id: messages.length + 2,
+        type: 'bot',
+        content: generateBotResponse(newMessage, detectedRisk),
+        timestamp: new Date(),
+        urgent: detectedRisk === 'high'
+      };
+
+      setMessages(prev => [...prev, botResponse]);
+      setIsTyping(false);
+
+      // Schedule follow-up questions based on context
+      if (detectedRisk === 'moderate') {
+        setTimeout(() => {
+          const followUp = {
+            id: messages.length + 3,
+            type: 'bot',
+            content: "Real talk though - you got people you can hit up today? Brothers, family, anyone? I'm here for you but sometimes you need someone you can grab a beer with, you know? I can also hook you up with some pros if that's more your speed.",
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, followUp]);
+        }, 3000);
       }
-    }
-  </script>
-</body>
-</html>
+    }, 1500 + Math.random() * 1000);
+  };
+
+  // Proactive check-ins
+  useEffect(() => {
+    const checkInInterval = setInterval(() => {
+      const hoursSinceLastMessage = messages.length > 0 ? 
+        (Date.now() - messages[messages.length - 1].timestamp.getTime()) / (1000 * 60 * 60) : 0;
+
+      if (hoursSinceLastMessage > 6) { // 6 hours since last interaction
+        const checkInMessage = {
+          id: messages.length + 1,
+          type: 'bot',
+          content: "Yo, just checking in on you, man. How's your day going? Sometimes it's good to just get stuff off your chest, no pressure though.",
+          timestamp: new Date(),
+          proactive: true
+        };
+        setMessages(prev => [...prev, checkInMessage]);
+      }
+    }, 1000 * 60 * 60); // Check every hour
+
+    return () => clearInterval(checkInInterval);
+  }, [messages]);
+
+  const MessageBubble = ({ message }) => {
+    const isBot = message.type === 'bot';
+    const isUrgent = message.urgent;
+
+    return (
+      <div className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-4`}>
+        <div className={`flex items-start space-x-2 max-w-xs lg:max-w-md ${isBot ? 'flex-row' : 'flex-row-reverse space-x-reverse'}`}>
+          {isBot && (
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isUrgent ? 'bg-red-500' : 'bg-blue-500'} text-white flex-shrink-0`}>
+              {isUrgent ? <AlertTriangle className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+            </div>
+          )}
+          {!isBot && (
+            <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white flex-shrink-0">
+              <User className="w-4 h-4" />
+            </div>
+          )}
+          
+          <div className={`rounded-2xl px-4 py-3 ${
+            isBot 
+              ? isUrgent 
+                ? 'bg-red-100 border-2 border-red-300 text-red-900' 
+                : 'bg-gray-100 text-gray-800'
+              : 'bg-blue-500 text-white'
+          }`}>
+            <p className="text-sm whitespace-pre-line">{message.content}</p>
+            <p className={`text-xs mt-2 ${
+              isBot 
+                ? isUrgent 
+                  ? 'text-red-600' 
+                  : 'text-gray-500'
+                : 'text-blue-100'
+            }`}>
+              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+            {message.proactive && (
+              <div className="flex items-center mt-2">
+                <Clock className="w-3 h-3 text-blue-500 mr-1" />
+                <span className="text-xs text-blue-600">Proactive check-in</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const QuickActions = () => (
+    <div className="flex flex-wrap gap-2 p-4 border-t bg-gray-50">
+      <button 
+        onClick={() => setNewMessage("I'm feeling overwhelmed today")}
+        className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm hover:bg-yellow-200 transition-colors"
+      >
+        Feeling swamped
+      </button>
+      <button 
+        onClick={() => setNewMessage("I'm having a good day")}
+        className="px-3 py-2 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition-colors"
+      >
+        Solid day
+      </button>
+      <button 
+        onClick={() => setNewMessage("I need someone to talk to")}
+        className="px-3 py-2 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors"
+      >
+        Need to vent
+      </button>
+      <button 
+        onClick={() => setNewMessage("I'm struggling")}
+        className="px-3 py-2 bg-red-100 text-red-800 rounded-full text-sm hover:bg-red-200 transition-colors"
+      >
+        Going through it
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="max-w-md mx-auto bg-white h-screen flex flex-col">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <Shield className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg">Coach</h1>
+            <div className="flex items-center space-x-1">
+              <div className={`w-2 h-2 rounded-full ${
+                riskLevel === 'high' ? 'bg-red-400' :
+                riskLevel === 'moderate' ? 'bg-yellow-400' :
+                'bg-green-400'
+              }`}></div>
+              <p className="text-sm text-blue-100">Your wingman for life</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex space-x-2">
+          <button className="p-2 bg-white bg-opacity-20 rounded-full">
+            <Phone className="w-5 h-5" />
+          </button>
+          <button className="p-2 bg-white bg-opacity-20 rounded-full">
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Crisis Alert Banner */}
+      {riskLevel === 'high' && (
+        <div className="bg-red-500 text-white p-3 text-center">
+          <div className="flex items-center justify-center space-x-2">
+            <AlertTriangle className="w-5 h-5" />
+            <span className="font-semibold">Bro, I'm here for you</span>
+          </div>
+          <p className="text-sm mt-1">You don't gotta go through this alone, man.</p>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+        
+        {isTyping && (
+          <div className="flex justify-start mb-4">
+            <div className="flex items-start space-x-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                <Bot className="w-4 h-4" />
+              </div>
+              <div className="bg-gray-200 rounded-2xl px-4 py-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Input */}
+      <div className="border-t bg-white p-4">
+        <div className="flex space-x-3">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="What's going on, man?"
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim()}
+            className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* Emergency Access */}
+        <div className="flex justify-center mt-3">
+          <button 
+            onClick={addUrgentResourcesMessage}
+            className="text-red-600 text-sm font-medium hover:text-red-700 flex items-center space-x-1"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span>Need help ASAP?</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
