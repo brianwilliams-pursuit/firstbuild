@@ -1,443 +1,352 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bro Support - Anonymous Crisis Support</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Phone, AlertTriangle, Settings, User, Bot, Heart, Shield, Activity, Clock } from 'lucide-react';
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #2c5aa0 0%, #4a90a4 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+const CrisisCoachMessaging = () => {
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      type: 'bot',
+      content: "Yo! What's good, bro? I'm Coach - think of me as your wingman for life's tough stuff. No judgment here, just real talk when you need it. How you doing today, man?",
+      timestamp: new Date(Date.now() - 300000),
+      urgent: false
+    }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [riskLevel, setRiskLevel] = useState('normal');
+  const [conversationContext, setConversationContext] = useState({
+    lastCheckIn: null,
+    concerningPatterns: [],
+    positivePatterns: [],
+    needsFollowUp: false
+  });
+  const messagesEndRef = useRef(null);
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+  // Keywords and patterns for distress detection
+  const distressKeywords = {
+    high: ['suicide', 'kill myself', 'end it all', 'no point', 'worthless', 'hopeless', 'can\'t go on'],
+    moderate: ['depressed', 'anxious', 'overwhelmed', 'struggling', 'difficult', 'hard time', 'stressed'],
+    positive: ['better', 'good', 'improving', 'happy', 'grateful', 'hopeful', 'progress']
+  };
 
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-        header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .input-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        #feelings-input {
-            width: 100%;
-            padding: 20px;
-            border: 2px solid #e1e5e9;
-            border-radius: 10px;
-            font-size: 16px;
-            resize: vertical;
-            min-height: 120px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-        }
-
-        #feelings-input:focus {
-            outline: none;
-            border-color: #4a90a4;
-            box-shadow: 0 0 0 3px rgba(74, 144, 164, 0.1);
-        }
-
-        #submit-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-
-        #submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-        }
-
-        #response-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .encouragement {
-            background: linear-gradient(135deg, #6f42c1, #e83e8c);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 1.3em;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
-        }
-
-        .response-message {
-            font-size: 1.1em;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            line-height: 1.7;
-        }
-
-        .crisis-resources {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        .support-resources {
-            background: linear-gradient(135deg, #fd7e14, #e55a00);
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        .general-resources {
-            background: linear-gradient(135deg, #28a745, #1e7e34);
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-
-        .resource-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .resource-card.urgent {
-            border-left: 4px solid #ffeb3b;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .help-button {
-            display: inline-block;
-            background: white;
-            color: #dc3545;
-            padding: 12px 25px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: bold;
-            margin-top: 15px;
-            transition: transform 0.2s;
-        }
-
-        .help-button:hover {
-            transform: scale(1.05);
-        }
-
-        .bro-note {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            font-style: italic;
-            border-left: 4px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .crisis-notice {
-            background: linear-gradient(135deg, #dc3545, #bd2130);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-        }
-
-        .privacy-note {
-            text-align: center;
-            color: white;
-            opacity: 0.8;
-            font-size: 0.9em;
-        }
-
-        .disclaimer {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        /* Mobile responsiveness */
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-            
-            header h1 {
-                font-size: 2em;
-            }
-            
-            .input-section, #response-section {
-                padding: 20px;
-            }
-            
-            #feelings-input {
-                padding: 15px;
-                min-height: 100px;
-            }
-            
-            .encouragement {
-                font-size: 1.1em;
-                padding: 15px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Bro Support</h1>
-            <p>Anonymous, judgment-free space. We got your back.</p>
-        </header>
-
-        <div class="disclaimer">
-            <p><strong>Important:</strong> This tool provides peer support and resource information only. It is not a substitute for professional mental health treatment, medical advice, or crisis intervention services. If you are experiencing a mental health emergency, please contact professional services immediately.</p>
-        </div>
-
-        <div class="input-section">
-            <textarea 
-                id="feelings-input" 
-                placeholder="What's going on, bro? Let it out - no judgment here."
-                rows="4"
-            ></textarea>
-            <button id="submit-btn">I need some support</button>
-        </div>
-        
-        <div id="response-section" style="display:none;">
-            <div id="encouragement-message"></div>
-            <div id="response-message"></div>
-            <div id="resources"></div>
-        </div>
-        
-        <div class="crisis-notice">
-            <p><strong>In immediate danger?</strong></p>
-            <p>Call 911 or text 988 (Crisis Lifeline) - We want you safe, bro</p>
-        </div>
-
-        <div class="privacy-note">
-            <p>Completely anonymous - no data stored, no tracking</p>
-        </div>
-    </div>
+  // Analyze message for distress indicators
+  const analyzeMessage = (content) => {
+    const lowerContent = content.toLowerCase();
     
-    <script>
-        // Crisis keywords to detect high-risk situations
-        const crisisKeywords = [
-            'suicide', 'kill myself', 'end it all', 'better off dead',
-            'can\'t go on', 'want to die', 'no point', 'give up',
-            'hurt myself', 'end my life', 'not worth living', 'no hope',
-            'want out', 'can\'t take it', 'done with life'
-        ];
+    if (distressKeywords.high.some(keyword => lowerContent.includes(keyword))) {
+      return 'high';
+    } else if (distressKeywords.moderate.some(keyword => lowerContent.includes(keyword))) {
+      return 'moderate';
+    } else if (distressKeywords.positive.some(keyword => lowerContent.includes(keyword))) {
+      return 'positive';
+    }
+    return 'normal';
+  };
 
-        const stressKeywords = [
-            'stress', 'overwhelmed', 'pressure', 'breaking point',
-            'can\'t handle', 'too much', 'falling apart', 'losing it',
-            'burned out', 'exhausted', 'drowning'
-        ];
+  // Generate appropriate bot response based on risk level
+  const generateBotResponse = (userMessage, riskLevel) => {
+    const responses = {
+      high: [
+        "Yo man, I'm not gonna lie - what you just said has me worried about you, for real. You're my guy and I need to make sure you're safe. Can we get you talking to someone who knows their stuff right now?",
+        "Bro, that's some heavy stuff you're carrying. You don't gotta face this alone though - that's what we're here for. Let me hook you up with someone who can help you work through this, yeah?"
+      ],
+      moderate: [
+        "Damn man, sounds like you're going through it right now. That takes some serious guts to open up like that. What's been the hardest part about all this?",
+        "I hear you, bro. Life's been throwing some punches lately, huh? You're stronger than you think, but even strong dudes need backup sometimes. Who's in your corner right now?",
+        "Real talk - that sounds rough as hell. But you trusted me with this, and that means something. What usually helps when you're feeling like this? Let's figure this out together."
+      ],
+      positive: [
+        "Yooo, that's what I'm talking about! Love hearing you sound good, man. What's got you feeling solid today?",
+        "Now that's the energy I like to see! Good to hear you're having a better day, bro. What's different about today?"
+      ],
+      normal: [
+        "I appreciate you keeping it real with me, man. How's your sleep been? You know that stuff matters more than people think.",
+        "Thanks for checking in, bro. What's been on your mind lately? Sometimes just talking it out helps.",
+        "How you taking care of yourself today, man? You doing anything good for you?"
+      ]
+    };
 
-        // Encouraging messages in supportive, peer-style language
-        const encouragementMessages = {
-            crisis: [
-                "Hey bro, you reached out and that takes real strength",
-                "You got this fam - you're not alone in this fight", 
-                "We see you, we got you, and you matter more than you know",
-                "Real talk: reaching out shows you're a fighter, not giving up",
-                "Bro, you're stronger than this moment - we believe in you"
-            ],
-            stress: [
-                "Yo, sounds like you're carrying a heavy load right now",
-                "We got your back through this tough time, fam",
-                "You're dealing with real stuff - that's not weakness, that's life",
-                "Been there, felt that. You're gonna get through this, bro",
-                "Stress is real but so are you - we see your strength"
-            ],
-            general: [
-                "Thanks for trusting us with what's going on, bro",
-                "You got this, fam. Taking care of your mental health is strength",
-                "Real men talk about their feelings - respect for opening up",
-                "We got you, bro. Whatever you're facing, you don't face it alone",
-                "Appreciate you being real with us - that takes courage"
-            ]
+    const responseArray = responses[riskLevel] || responses.normal;
+    return responseArray[Math.floor(Math.random() * responseArray.length)];
+  };
+
+  // Add urgent resources message
+  const addUrgentResourcesMessage = () => {
+    const urgentMessage = {
+      id: messages.length + 1,
+      type: 'bot',
+      content: "🚨 Listen up bro - I got your back and so do these guys:\n\n• Call 988 - These people know what they're doing\n• Text HOME to 741741 - Quick and easy\n• Call 911 if things are getting real\n\nYou matter, man. Seriously. Want me to help you connect with one of these? No shame in getting backup.",
+      timestamp: new Date(),
+      urgent: true
+    };
+    
+    setMessages(prev => [...prev, urgentMessage]);
+  };
+
+  // Handle sending messages
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    const userMessage = {
+      id: messages.length + 1,
+      type: 'user',
+      content: newMessage,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setNewMessage('');
+    setIsTyping(true);
+
+    // Analyze the message for risk
+    const detectedRisk = analyzeMessage(newMessage);
+    setRiskLevel(detectedRisk);
+
+    // If high risk, immediately add urgent resources
+    if (detectedRisk === 'high') {
+      setTimeout(() => {
+        addUrgentResourcesMessage();
+        setIsTyping(false);
+      }, 1000);
+      return;
+    }
+
+    // Generate and add bot response
+    setTimeout(() => {
+      const botResponse = {
+        id: messages.length + 2,
+        type: 'bot',
+        content: generateBotResponse(newMessage, detectedRisk),
+        timestamp: new Date(),
+        urgent: detectedRisk === 'high'
+      };
+
+      setMessages(prev => [...prev, botResponse]);
+      setIsTyping(false);
+
+      // Schedule follow-up questions based on context
+      if (detectedRisk === 'moderate') {
+        setTimeout(() => {
+          const followUp = {
+            id: messages.length + 3,
+            type: 'bot',
+            content: "Real talk though - you got people you can hit up today? Brothers, family, anyone? I'm here for you but sometimes you need someone you can grab a beer with, you know? I can also hook you up with some pros if that's more your speed.",
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, followUp]);
+        }, 3000);
+      }
+    }, 1500 + Math.random() * 1000);
+  };
+
+  // Proactive check-ins
+  useEffect(() => {
+    const checkInInterval = setInterval(() => {
+      const hoursSinceLastMessage = messages.length > 0 ? 
+        (Date.now() - messages[messages.length - 1].timestamp.getTime()) / (1000 * 60 * 60) : 0;
+
+      if (hoursSinceLastMessage > 6) { // 6 hours since last interaction
+        const checkInMessage = {
+          id: messages.length + 1,
+          type: 'bot',
+          content: "Yo, just checking in on you, man. How's your day going? Sometimes it's good to just get stuff off your chest, no pressure though.",
+          timestamp: new Date(),
+          proactive: true
         };
+        setMessages(prev => [...prev, checkInMessage]);
+      }
+    }, 1000 * 60 * 60); // Check every hour
 
-        // Supportive responses with professional resources
-        const responses = {
-            crisis: {
-                message: "Listen bro, what you're going through is serious, but you don't have to handle this alone. There are people who specialize in exactly what you're feeling right now.",
-                resources: `
-                    <div class="crisis-resources">
-                        <h3>GET IMMEDIATE HELP:</h3>
-                        <div class="resource-card urgent">
-                            <p><strong>Text 988</strong> - Crisis Lifeline (24/7)</p>
-                            <p>Real people who get it, available right now</p>
-                        </div>
-                        <div class="resource-card urgent">
-                            <p><strong>Text "HELLO" to 741741</strong> - Crisis Text Line</p>
-                            <p>Text-based support if calling feels too hard</p>
-                        </div>
-                        <div class="resource-card urgent">
-                            <p><strong>Call 911</strong> if you're in immediate physical danger</p>
-                        </div>
-                        <a href="https://988lifeline.org/" target="_blank" class="help-button">Connect Now</a>
-                        <p class="bro-note">Bro, these aren't just hotlines - they're real people who've helped thousands get through exactly what you're feeling.</p>
-                    </div>
-                `
-            },
-            stress: {
-                message: "Sounds like the pressure is getting real heavy, bro. That overwhelmed feeling is your mind telling you it's time to get some support.",
-                resources: `
-                    <div class="support-resources">
-                        <h3>STRESS SUPPORT TOOLKIT:</h3>
-                        <div class="resource-card">
-                            <p><strong>Quick Relief:</strong> Try 4-7-8 breathing (breathe in 4, hold 7, out 8)</p>
-                        </div>
-                        <div class="resource-card">
-                            <p><strong>Talk it out:</strong> Call someone you trust - even 5 minutes helps</p>
-                        </div>
-                        <div class="resource-card">
-                            <p><strong>Move your body:</strong> 10 push-ups or a walk around the block</p>
-                        </div>
-                        <div class="resource-card">
-                            <p><strong>If stress is constant:</strong> Text 988 for professional support</p>
-                        </div>
-                        <p class="bro-note">Remember: Asking for help isn't giving up, it's leveling up.</p>
-                    </div>
-                `
-            },
-            general: {
-                message: "Appreciate you sharing what's on your mind, bro. Sometimes just getting it out there is the first step to feeling better.",
-                resources: `
-                    <div class="general-resources">
-                        <h3>SUPPORT OPTIONS:</h3>
-                        <div class="resource-card">
-                            <p><strong>Crisis Text Line:</strong> Text HOME to 741741</p>
-                            <p>For when you need to talk but don't want to call</p>
-                        </div>
-                        <div class="resource-card">
-                            <p><strong>Men's Health Resources:</strong> Focus on one small win today</p>
-                        </div>
-                        <div class="resource-card">
-                            <p><strong>Remember:</strong> Taking care of your mental health is as important as physical health</p>
-                        </div>
-                        <div class="resource-card">
-                            <p><strong>Bro tip:</strong> Even asking for help is a sign you're handling business</p>
-                        </div>
-                        <p class="bro-note">You reached out today - that's already progress, fam.</p>
-                    </div>
-                `
-            }
-        };
+    return () => clearInterval(checkInInterval);
+  }, [messages]);
 
-        // Main function to analyze input and show response
-        document.getElementById('submit-btn').addEventListener('click', function() {
-            const input = document.getElementById('feelings-input').value.toLowerCase().trim();
-            
-            if (!input) {
-                alert('Let us know what\'s going on, bro. We\'re here to listen.');
-                return;
-            }
+  const MessageBubble = ({ message }) => {
+    const isBot = message.type === 'bot';
+    const isUrgent = message.urgent;
 
-            const responseSection = document.getElementById('response-section');
-            const encouragementDiv = document.getElementById('encouragement-message');
-            const messageDiv = document.getElementById('response-message');
-            const resourcesDiv = document.getElementById('resources');
-            
-            // Determine response type based on keywords
-            let responseType = 'general';
-            
-            // Check for crisis keywords first (highest priority)
-            if (crisisKeywords.some(keyword => input.includes(keyword))) {
-                responseType = 'crisis';
-            } else if (stressKeywords.some(keyword => input.includes(keyword))) {
-                responseType = 'stress';
-            }
-            
-            // Get random encouraging message
-            const encouragements = encouragementMessages[responseType];
-            const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
-            
-            // Show encouraging message first
-            encouragementDiv.innerHTML = `<div class="encouragement">${randomEncouragement}</div>`;
-            
-            // Show appropriate response
-            const response = responses[responseType];
-            messageDiv.innerHTML = `<p class="response-message">${response.message}</p>`;
-            resourcesDiv.innerHTML = response.resources;
-            
-            // Show response section with animation
-            responseSection.style.display = 'block';
-            setTimeout(() => {
-                responseSection.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-        });
+    return (
+      <div className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-4`}>
+        <div className={`flex items-start space-x-2 max-w-xs lg:max-w-md ${isBot ? 'flex-row' : 'flex-row-reverse space-x-reverse'}`}>
+          {isBot && (
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isUrgent ? 'bg-red-500' : 'bg-blue-500'} text-white flex-shrink-0`}>
+              {isUrgent ? <AlertTriangle className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+            </div>
+          )}
+          {!isBot && (
+            <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white flex-shrink-0">
+              <User className="w-4 h-4" />
+            </div>
+          )}
+          
+          <div className={`rounded-2xl px-4 py-3 ${
+            isBot 
+              ? isUrgent 
+                ? 'bg-red-100 border-2 border-red-300 text-red-900' 
+                : 'bg-gray-100 text-gray-800'
+              : 'bg-blue-500 text-white'
+          }`}>
+            <p className="text-sm whitespace-pre-line">{message.content}</p>
+            <p className={`text-xs mt-2 ${
+              isBot 
+                ? isUrgent 
+                  ? 'text-red-600' 
+                  : 'text-gray-500'
+                : 'text-blue-100'
+            }`}>
+              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </p>
+            {message.proactive && (
+              <div className="flex items-center mt-2">
+                <Clock className="w-3 h-3 text-blue-500 mr-1" />
+                <span className="text-xs text-blue-600">Proactive check-in</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
-        // Add some interactive encouragement
-        document.getElementById('feelings-input').addEventListener('focus', function() {
-            this.placeholder = "We're listening, bro. What's really going on?";
-        });
+  const QuickActions = () => (
+    <div className="flex flex-wrap gap-2 p-4 border-t bg-gray-50">
+      <button 
+        onClick={() => setNewMessage("I'm feeling overwhelmed today")}
+        className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm hover:bg-yellow-200 transition-colors"
+      >
+        Feeling swamped
+      </button>
+      <button 
+        onClick={() => setNewMessage("I'm having a good day")}
+        className="px-3 py-2 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition-colors"
+      >
+        Solid day
+      </button>
+      <button 
+        onClick={() => setNewMessage("I need someone to talk to")}
+        className="px-3 py-2 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition-colors"
+      >
+        Need to vent
+      </button>
+      <button 
+        onClick={() => setNewMessage("I'm struggling")}
+        className="px-3 py-2 bg-red-100 text-red-800 rounded-full text-sm hover:bg-red-200 transition-colors"
+      >
+        Going through it
+      </button>
+    </div>
+  );
 
-        document.getElementById('feelings-input').addEventListener('blur', function() {
-            if (!this.value) {
-                this.placeholder = "What's going on, bro? Let it out - no judgment here.";
-            }
-        });
-    </script>
-</body>
+  return (
+    <div className="max-w-md mx-auto bg-white h-screen flex flex-col">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <Shield className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg">Coach</h1>
+            <div className="flex items-center space-x-1">
+              <div className={`w-2 h-2 rounded-full ${
+                riskLevel === 'high' ? 'bg-red-400' :
+                riskLevel === 'moderate' ? 'bg-yellow-400' :
+                'bg-green-400'
+              }`}></div>
+              <p className="text-sm text-blue-100">Your wingman for life</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex space-x-2">
+          <button className="p-2 bg-white bg-opacity-20 rounded-full">
+            <Phone className="w-5 h-5" />
+          </button>
+          <button className="p-2 bg-white bg-opacity-20 rounded-full">
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Crisis Alert Banner */}
+      {riskLevel === 'high' && (
+        <div className="bg-red-500 text-white p-3 text-center">
+          <div className="flex items-center justify-center space-x-2">
+            <AlertTriangle className="w-5 h-5" />
+            <span className="font-semibold">Bro, I'm here for you</span>
+          </div>
+          <p className="text-sm mt-1">You don't gotta go through this alone, man.</p>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+        
+        {isTyping && (
+          <div className="flex justify-start mb-4">
+            <div className="flex items-start space-x-2">
+              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                <Bot className="w-4 h-4" />
+              </div>
+              <div className="bg-gray-200 rounded-2xl px-4 py-3">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Input */}
+      <div className="border-t bg-white p-4">
+        <div className="flex space-x-3">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="What's going on, man?"
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-blue-500"
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim()}
+            className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* Emergency Access */}
+        <div className="flex justify-center mt-3">
+          <button 
+            onClick={addUrgentResourcesMessage}
+            className="text-red-600 text-sm font-medium hover:text-red-700 flex items-center space-x-1"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span>Need help ASAP?</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CrisisCoachMessaging;
 </html>
